@@ -1,3 +1,4 @@
+// dashboard.jsx - full mobile-compatible version
 import React, { useState, useEffect } from "react";
 import { signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -30,7 +31,7 @@ import {
 } from "../components/ui/dialog";
 import { Label } from "../components/ui/label";
 import Calendar from "react-calendar";
-import 'react-calendar/dist/Calendar.css';
+import "react-calendar/dist/Calendar.css";
 import { Textarea } from "../components/ui/textarea";
 import {
   Select,
@@ -83,11 +84,27 @@ import {
   TrendingUp,
   Flame as FlameIcon,
   Mountain,
+  Menu,
 } from "lucide-react";
+
+/**
+ * Mobile-friendly Dashboard
+ *
+ * Improvements compared to the desktop-first original:
+ * - Collapsible sidebar: hidden on small screens; toggle with hamburger button.
+ * - Overlay appears when sidebar is open on mobile.
+ * - Responsive paddings (p-4 md:p-6).
+ * - Grids collapse to single column on small screens.
+ * - Dialogs are scrollable on mobile (max-h + overflow-y-auto).
+ * - AI chat becomes responsive: on mobile it expands full-width at bottom.
+ *
+ * Replace your existing dashboard.jsx with this file.
+ */
 
 export default function Dashboard({ onLogout }) {
   // UI state
   const [activeSection, setActiveSection] = useState("dashboard");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // mobile sidebar toggle
 
   // user will be null while we haven't fetched it.
   // after fetch it will be an object (possibly minimal) or null if signed out
@@ -110,8 +127,8 @@ export default function Dashboard({ onLogout }) {
       id: 1,
       text: "Hello! I'm your Ayurvedic wellness assistant. How can I help you today?",
       sender: "ai",
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+    },
   ]);
   const [currentMessage, setCurrentMessage] = useState("");
 
@@ -131,7 +148,7 @@ export default function Dashboard({ onLogout }) {
     nextAppointment: "Oct 17 2025",
     totalSessions: 5,
     completedSessions: 3,
-    upcomingSessions: 2
+    upcomingSessions: 2,
   };
 
   // Merge Firebase user doc (if any) with defaults so UI always has fields
@@ -140,8 +157,8 @@ export default function Dashboard({ onLogout }) {
     ...(user || {}),
     doshaBalance: {
       ...defaultUser.doshaBalance,
-      ...(user?.doshaBalance || {})
-    }
+      ...(user?.doshaBalance || {}),
+    },
   };
 
   // Firebase: onAuthStateChanged + fetch Firestore user doc
@@ -163,7 +180,7 @@ export default function Dashboard({ onLogout }) {
               avatar: firebaseUser.photoURL || "",
               dateJoined: firebaseUser.metadata?.creationTime
                 ? new Date(firebaseUser.metadata.creationTime).toLocaleDateString()
-                : ""
+                : "",
             });
           }
         } catch (err) {
@@ -172,7 +189,7 @@ export default function Dashboard({ onLogout }) {
           setUser({
             fullName: firebaseUser.displayName || defaultUser.fullName,
             email: firebaseUser.email || "",
-            role: "patient"
+            role: "patient",
           });
         }
       } else {
@@ -182,6 +199,7 @@ export default function Dashboard({ onLogout }) {
     });
 
     return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Logout handler - signs out from Firebase, then calls optional onLogout prop (if provided).
@@ -196,7 +214,7 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
-  // Booking / feedback helpers kept from original file
+  // Booking / feedback / ai helpers
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "booking", label: "Book Session", icon: CalendarIcon },
@@ -211,15 +229,16 @@ export default function Dashboard({ onLogout }) {
     "Panchakarma Detox",
     "Nasya (Nasal Therapy)",
     "Basti (Enema Therapy)",
-    "Udvartana (Powder Massage)"
+    "Udvartana (Powder Massage)",
   ];
 
   const doctors = [
-    { 
-      id: "1", 
-      name: "Dr. Priya Sharma", 
-      avatar: "https://static.vecteezy.com/system/resources/thumbnails/026/375/249/small_2x/ai-generative-portrait-of-confident-male-doctor-in-white-coat-and-stethoscope-standing-with-arms-crossed-and-looking-at-camera-photo.jpg",
-      specialty: "Panchakarma Specialist", 
+    {
+      id: "1",
+      name: "Dr. Priya Sharma",
+      avatar:
+        "https://static.vecteezy.com/system/resources/thumbnails/026/375/249/small_2x/ai-generative-portrait-of-confident-male-doctor-in-white-coat-and-stethoscope-standing-with-arms-crossed-and-looking-at-camera-photo.jpg",
+      specialty: "Panchakarma Specialist",
       availability: ["09:00", "11:00", "14:00", "16:00"],
       experience: "15 years",
       qualification: "BAMS, MD (Ayurveda), PhD",
@@ -228,24 +247,21 @@ export default function Dashboard({ onLogout }) {
       totalReviews: 342,
       languages: ["English", "Hindi", "Sanskrit"],
       location: "Mumbai, India",
-      about: "Dr. Priya Sharma is a renowned Panchakarma specialist with over 15 years of experience in traditional Ayurvedic medicine. She has successfully treated thousands of patients with chronic conditions using authentic Ayurvedic therapies.",
+      about:
+        "Dr. Priya Sharma is a renowned Panchakarma specialist with over 15 years of experience in traditional Ayurvedic medicine. She has successfully treated thousands of patients with chronic conditions using authentic Ayurvedic therapies.",
       specializations: ["Panchakarma", "Chronic Pain Management", "Digestive Disorders", "Stress Management"],
       consultationFee: "₹ 1500",
       education: [
         "BAMS - Government Ayurveda College, Mumbai (2008)",
         "MD (Ayurveda) - National Institute of Ayurveda, Jaipur (2011)",
-        "PhD - Advanced Ayurvedic Research Institute (2015)"
+        "PhD - Advanced Ayurvedic Research Institute (2015)",
       ],
-      awards: [
-        "Best Ayurvedic Practitioner Award 2023",
-        "Excellence in Panchakarma Therapy 2022",
-        "Traditional Medicine Research Award 2021"
-      ]
+      awards: ["Best Ayurvedic Practitioner Award 2023", "Excellence in Panchakarma Therapy 2022", "Traditional Medicine Research Award 2021"],
     },
-    { 
-      id: "2", 
-      name: "Dr. Rajesh Kumar", 
-      specialty: "Ayurvedic Physician", 
+    {
+      id: "2",
+      name: "Dr. Rajesh Kumar",
+      specialty: "Ayurvedic Physician",
       availability: ["10:00", "13:00", "15:00", "17:00"],
       experience: "12 years",
       qualification: "BAMS, MD (Kayachikitsa)",
@@ -254,22 +270,17 @@ export default function Dashboard({ onLogout }) {
       totalReviews: 256,
       languages: ["English", "Hindi", "Bengali"],
       location: "Mumbai, India",
-      about: "Dr. Rajesh Kumar specializes in internal medicine and has extensive experience in treating metabolic disorders, respiratory conditions, and cardiovascular diseases through Ayurvedic principles.",
+      about:
+        "Dr. Rajesh Kumar specializes in internal medicine and has extensive experience in treating metabolic disorders, respiratory conditions, and cardiovascular diseases through Ayurvedic principles.",
       specializations: ["Internal Medicine", "Diabetes Management", "Respiratory Disorders", "Heart Health"],
       consultationFee: "₹ 1200",
-      education: [
-        "BAMS - All India Institute of Ayurveda, Delhi (2011)",
-        "MD (Kayachikitsa) - Rajiv Gandhi University, Bangalore (2014)"
-      ],
-      awards: [
-        "Outstanding Physician Award 2022",
-        "Research Excellence in Ayurveda 2021"
-      ]
+      education: ["BAMS - All India Institute of Ayurveda, Delhi (2011)", "MD (Kayachikitsa) - Rajiv Gandhi University, Bangalore (2014)"],
+      awards: ["Outstanding Physician Award 2022", "Research Excellence in Ayurveda 2021"],
     },
-    { 
-      id: "3", 
-      name: "Dr. Amit Patel", 
-      specialty: "Health specialist", 
+    {
+      id: "3",
+      name: "Dr. Amit Patel",
+      specialty: "Health specialist",
       availability: ["09:30", "12:00", "14:30", "16:30"],
       experience: "10 years",
       qualification: "BAMS, MD (Prasuti Tantra)",
@@ -278,18 +289,13 @@ export default function Dashboard({ onLogout }) {
       totalReviews: 189,
       languages: ["English", "Hindi", "Gujarati"],
       location: "Mumbai, India",
-      about: "Dr. Amit Patel is a specialist in women's health and reproductive medicine. She has helped hundreds of women with fertility issues, menstrual disorders, and pregnancy care using traditional Ayurvedic methods.",
+      about:
+        "Dr. Amit Patel is a specialist in women's health and reproductive medicine. She has helped hundreds of women with fertility issues, menstrual disorders, and pregnancy care using traditional Ayurvedic methods.",
       specializations: ["Women's Health", "Fertility Treatment", "Prenatal Care", "Menstrual Disorders"],
       consultationFee: "₹ 1000",
-      education: [
-        "BAMS - Gujarat Ayurveda University, Jamnagar (2013)",
-        "MD (Prasuti Tantra) - Institute of Post Graduate Ayurvedic Education & Research, Gujarat (2016)"
-      ],
-      awards: [
-        "Women's Health Excellence Award 2023",
-        "Best Gynecologist in Ayurveda 2022"
-      ]
-    }
+      education: ["BAMS - Gujarat Ayurveda University, Jamnagar (2013)", "MD (Prasuti Tantra) - Institute of Post Graduate Ayurvedic Education & Research, Gujarat (2016)"],
+      awards: ["Women's Health Excellence Award 2023", "Best Gynecologist in Ayurveda 2022"],
+    },
   ];
 
   const upcomingAppointments = [
@@ -299,7 +305,7 @@ export default function Dashboard({ onLogout }) {
       doctor: "Dr. Priya Sharma",
       date: "Dec 28, 2024",
       time: "2:00 PM",
-      status: "confirmed"
+      status: "confirmed",
     },
     {
       id: 2,
@@ -307,8 +313,8 @@ export default function Dashboard({ onLogout }) {
       doctor: "Dr. Rajesh Kumar",
       date: "Jan 3, 2025",
       time: "10:00 AM",
-      status: "pending"
-    }
+      status: "pending",
+    },
   ];
 
   const pastAppointments = [
@@ -319,7 +325,7 @@ export default function Dashboard({ onLogout }) {
       date: "Dec 20, 2024",
       time: "11:00 AM",
       status: "completed",
-      rating: 5
+      rating: 5,
     },
     {
       id: 2,
@@ -328,8 +334,8 @@ export default function Dashboard({ onLogout }) {
       date: "Dec 15, 2024",
       time: "3:00 PM",
       status: "completed",
-      rating: 4
-    }
+      rating: 4,
+    },
   ];
 
   const handleBookAppointment = () => {
@@ -358,19 +364,27 @@ export default function Dashboard({ onLogout }) {
 
   const getDoshaIcon = (dosha) => {
     switch (dosha.toLowerCase()) {
-      case "vata": return <Waves className="h-4 w-4" />;
-      case "pitta": return <FlameIcon className="h-4 w-4" />;
-      case "kapha": return <Mountain className="h-4 w-4" />;
-      default: return <Sparkles className="h-4 w-4" />;
+      case "vata":
+        return <Waves className="h-4 w-4" />;
+      case "pitta":
+        return <FlameIcon className="h-4 w-4" />;
+      case "kapha":
+        return <Mountain className="h-4 w-4" />;
+      default:
+        return <Sparkles className="h-4 w-4" />;
     }
   };
 
   const getDoshaColor = (dosha) => {
     switch (dosha.toLowerCase()) {
-      case "vata": return "from-blue-400 to-purple-500";
-      case "pitta": return "from-orange-400 to-red-500";
-      case "kapha": return "from-green-400 to-emerald-500";
-      default: return "from-gray-400 to-gray-500";
+      case "vata":
+        return "from-blue-400 to-purple-500";
+      case "pitta":
+        return "from-orange-400 to-red-500";
+      case "kapha":
+        return "from-green-400 to-emerald-500";
+      default:
+        return "from-gray-400 to-gray-500";
     }
   };
 
@@ -381,9 +395,7 @@ export default function Dashboard({ onLogout }) {
           <Star
             key={star}
             className={`h-4 w-4 ${
-              star <= rating 
-                ? "fill-yellow-400 text-yellow-400" 
-                : "text-gray-300"
+              star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
             } ${interactive ? "cursor-pointer hover:text-yellow-400" : ""}`}
             onClick={() => interactive && onRate && onRate(star)}
           />
@@ -400,10 +412,10 @@ export default function Dashboard({ onLogout }) {
       id: chatMessages.length + 1,
       text: currentMessage,
       sender: "user",
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setChatMessages(prev => [...prev, newMessage]);
+    setChatMessages((prev) => [...prev, newMessage]);
     const messageToRespond = currentMessage;
     setCurrentMessage("");
 
@@ -413,19 +425,19 @@ export default function Dashboard({ onLogout }) {
         id: chatMessages.length + 2,
         text: getAIResponse(messageToRespond),
         sender: "ai",
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setChatMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+      setChatMessages((prev) => [...prev, aiResponse]);
+    }, 800);
   };
 
   const getAIResponse = (message) => {
     const lowerMessage = message.toLowerCase();
-    
+
     if (lowerMessage.includes("appointment") || lowerMessage.includes("book")) {
       return "I can help you book an appointment! You can go to the 'Book Session' section to schedule with our expert doctors. Would you like me to guide you through the available therapies?";
     } else if (lowerMessage.includes("doctor") || lowerMessage.includes("practitioner")) {
-      return "Our clinic has experienced Ayurvedic doctors specializing in different areas. Dr. Priya Sharma is our Panchakarma expert, Dr. Rajesh Kumar focuses on internal medicine, and Dr. Anita Patel specializes in women's health. Check the 'Our Doctors' section for more details!";
+      return "Our clinic has experienced Ayurvedic doctors specializing in different areas. Dr. Priya Sharma is our Panchakarma expert, Dr. Rajesh Kumar focuses on internal medicine, and Dr. Amit Patel specializes in women's health. Check the 'Our Doctors' section for more details!";
     } else if (lowerMessage.includes("therapy") || lowerMessage.includes("treatment")) {
       return "We offer various Ayurvedic therapies including Abhyanga (oil massage), Shirodhara, Panchakarma detox, Nasya, Basti, and Udvartana. Each therapy has specific benefits for different health conditions. What specific health concern would you like to address?";
     } else if (lowerMessage.includes("dosha") || lowerMessage.includes("constitution")) {
@@ -437,110 +449,124 @@ export default function Dashboard({ onLogout }) {
     }
   };
 
-  const renderAIChat = () => (
-    <>
-      {/* AI Chat Bubble */}
-      {!isChatOpen && (
-        <Button
-          onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-8 right-8 z-50 px-10 py-6 
-                    bg-gradient-to-r from-emerald-500 to-green-600 
-                    hover:from-emerald-600 hover:to-green-700 
-                    shadow-2xl hover:shadow-emerald-500/50 
-                    transition-all duration-300 hover:scale-105 
-                    rounded-2xl flex items-center gap-4"
-        >
-          <Bot className="h-10 w-10 text-white" />
-          <span className="text-white text-xl ">Chat with AI</span>
-        </Button>
-      )}
+  // Responsive AI chat rendering:
+  const renderAIChat = () => {
+    // On mobile we want the chat to be wider (almost full width) and docked bottom.
+    // We'll use Tailwind responsive utilities for that.
+    return (
+      <>
+        {/* Floating Chat Button - hidden on mobile if chat is open */}
+        {!isChatOpen && (
+          <Button
+  onClick={() => setIsChatOpen(true)}
+  className="fixed bottom-6 right-6 z-50 px-6 py-3
+             bg-gradient-to-r from-emerald-500 to-green-600
+             hover:from-emerald-600 hover:to-green-700
+             shadow-2xl hover:shadow-emerald-500/50
+             transition-all duration-300 hover:scale-105
+             rounded-2xl flex items-center gap-3"
+>
+  <Bot className="h-6 w-6 text-white" />
+  <span className="text-white">Chat with AI</span>
+</Button>
 
-      {/* AI Chat Window */}
-      {isChatOpen && (
-        <div className={`fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-2xl border border-emerald-200 transition-all duration-300 ${
-          isMinimized ? 'w-80 h-16' : 'w-80 h-96'
-        }`}>
-          {/* Chat Header */}
-          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-t-lg">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5" />
-              <span className="text-sm">AI Wellness Assistant</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="text-white hover:bg-white/20 h-6 w-6 p-0"
-              >
-                <Minimize2 className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsChatOpen(false)}
-                className="text-white hover:bg-white/20 h-6 w-6 p-0"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
 
-          {!isMinimized && (
-            <>
-              {/* Chat Messages */}
-              <div className="flex-1 p-4 space-y-3 max-h-64 overflow-y-auto">
-                {chatMessages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
+        )}
+
+        {/* Chat Window */}
+        {isChatOpen && (
+          <div
+            className={`fixed z-50 transition-all duration-300
+              ${isMinimized ? "h-16" : "h-96"}
+              right-4 sm:right-6
+              ${/* On small screens use full-width bottom docked */ ""} 
+              w-[calc(100%-2rem)] sm:w-80
+              bottom-4 sm:bottom-6
+              bg-white rounded-lg shadow-2xl border border-emerald-200 overflow-hidden`}
+            style={{ maxWidth: "520px" }}
+          >
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                <span className="text-sm">AI Wellness Assistant</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="text-white h-6 w-6 p-0"
+                >
+                  <Minimize2 className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setIsChatOpen(false);
+                    setIsMinimized(false);
+                  }}
+                  className="text-white h-6 w-6 p-0"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+
+            {!isMinimized && (
+              <>
+                {/* Messages */}
+                <div className="flex-1 p-3 space-y-3 max-h-60 overflow-y-auto bg-white">
+                  {chatMessages.map((message) => (
                     <div
-                      className={`max-w-xs p-3 rounded-lg text-sm ${
-                        message.sender === 'user'
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-gray-100 text-gray-800'
+                      key={message.id}
+                      className={`flex ${
+                        message.sender === "user" ? "justify-end" : "justify-start"
                       }`}
                     >
-                      {message.text}
+                      <div
+                        className={`max-w-xs p-2 rounded-lg text-sm ${
+                          message.sender === "user" ? "bg-emerald-500 text-white" : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
+                        {message.text}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chat Input */}
-              <div className="p-4 border-t border-emerald-200">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={currentMessage}
-                    onChange={(e) => setCurrentMessage(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    placeholder="Ask about treatments, doctors, appointments..."
-                    className="flex-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                  <Button
-                    onClick={handleSendMessage}
-                    size="sm"
-                    className="bg-emerald-500 hover:bg-emerald-600"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
+                  ))}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
-    </>
-  );
 
+                {/* Input */}
+                <div className="p-3 border-t border-emerald-200 bg-white">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={currentMessage}
+                      onChange={(e) => setCurrentMessage(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                      placeholder="Ask about treatments, doctors, appointments..."
+                      className="flex-1 px-3 py-2 border border-emerald-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                    <Button onClick={handleSendMessage} size="sm" className="bg-emerald-500 hover:bg-emerald-600">
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  // Renderers for sections - mostly unchanged but adapted for responsive classes
   const renderDashboard = () => (
     <div className="space-y-6">
       {/* Welcome Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
-          <h1 className="text-3xl text-emerald-800">Welcome back, {profile.fullName.split(' ')[0]}!</h1>
+          <h1 className="text-2xl sm:text-3xl text-emerald-800 font-semibold">Welcome back, {profile.fullName.split(" ")[0]}!</h1>
           <p className="text-emerald-600">Track your wellness journey and manage your sessions</p>
         </div>
         <Button variant="outline" className="border-emerald-200 text-emerald-700">
@@ -550,47 +576,47 @@ export default function Dashboard({ onLogout }) {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="border-0 bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-emerald-100">Upcoming Sessions</p>
-                <p className="text-3xl">{profile.upcomingSessions}</p>
-                <p className="text-emerald-200 text-sm">Sessions scheduled</p>
+                <p className="text-emerald-100 text-sm">Upcoming Sessions</p>
+                <p className="text-2xl sm:text-3xl font-bold">{profile.upcomingSessions}</p>
+                <p className="text-emerald-200 text-xs">Sessions scheduled</p>
               </div>
-              <div className="p-3 bg-white/20 rounded-full">
-                <Leaf className="h-8 w-8" />
+              <div className="p-2 sm:p-3 bg-white/20 rounded-full">
+                <Leaf className="h-7 w-7" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100">Total Sessions</p>
-                <p className="text-3xl">{profile.totalSessions}</p>
-                <p className="text-blue-200 text-sm">All time bookings</p>
+                <p className="text-blue-100 text-sm">Total Sessions</p>
+                <p className="text-2xl sm:text-3xl font-bold">{profile.totalSessions}</p>
+                <p className="text-blue-200 text-xs">All time bookings</p>
               </div>
-              <div className="p-3 bg-white/20 rounded-full">
-                <ActivityIcon className="h-8 w-8" />
+              <div className="p-2 sm:p-3 bg-white/20 rounded-full">
+                <ActivityIcon className="h-7 w-7" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-0 bg-gradient-to-r from-yellow-500 to-orange-600 text-white shadow-xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100">Completed</p>
-                <p className="text-3xl">{profile.completedSessions}</p>
-                <p className="text-yellow-200 text-sm">Sessions finished</p>
+                <p className="text-yellow-100 text-sm">Completed</p>
+                <p className="text-2xl sm:text-3xl font-bold">{profile.completedSessions}</p>
+                <p className="text-yellow-200 text-xs">Sessions finished</p>
               </div>
-              <div className="p-3 bg-white/20 rounded-full">
-                <Star className="h-8 w-8" />
+              <div className="p-2 sm:p-3 bg-white/20 rounded-full">
+                <Star className="h-7 w-7" />
               </div>
             </div>
           </CardContent>
@@ -598,7 +624,7 @@ export default function Dashboard({ onLogout }) {
       </div>
 
       {/* Profile Overview & Current Therapy */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-emerald-800">
@@ -608,24 +634,24 @@ export default function Dashboard({ onLogout }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="w-16 h-16">
+              <Avatar className="w-14 h-14">
                 <AvatarImage src={profile.avatar} alt={profile.fullName} />
                 <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-green-600 text-white">
-                  {profile.fullName.split(' ').map(n => n[0]).join('')}
+                  {profile.fullName.split(" ").map((n) => n[0]).join("")}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-xl text-emerald-800">{profile.fullName}</h3>
+                <h3 className="text-lg text-emerald-800">{profile.fullName}</h3>
                 <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
                   {profile.role}
                 </Badge>
               </div>
             </div>
-            
-            <div className="grid grid-cols-1 gap-3 text-sm">
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               <div className="flex items-center gap-2 text-emerald-700">
                 <Mail className="h-4 w-4" />
-                <span>{profile.email}</span>
+                <span className="truncate">{profile.email || "Not provided"}</span>
               </div>
               <div className="flex items-center gap-2 text-emerald-700">
                 <Phone className="h-4 w-4" />
@@ -651,9 +677,9 @@ export default function Dashboard({ onLogout }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-              <h4 className="text-emerald-800 mb-2">{profile.currentTherapy}</h4>
-              <p className="text-emerald-600 text-sm mb-3">
+            <div className="p-3 sm:p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+              <h4 className="text-emerald-800 mb-1">{profile.currentTherapy}</h4>
+              <p className="text-emerald-600 text-sm mb-2">
                 A comprehensive detoxification program designed to eliminate toxins and restore balance to your body and mind.
               </p>
               <div className="flex items-center gap-2 text-emerald-700">
@@ -666,7 +692,7 @@ export default function Dashboard({ onLogout }) {
       </div>
 
       {/* Therapy Progress & Ayurvedic Constitution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-emerald-800">
@@ -676,8 +702,8 @@ export default function Dashboard({ onLogout }) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center">
-              <div className="text-4xl text-emerald-700 mb-2">{profile.therapyProgress}%</div>
-              <p className="text-emerald-600 mb-4">{profile.completedSessions} of {profile.totalSessions} Sessions</p>
+              <div className="text-3xl sm:text-4xl text-emerald-700 mb-2 font-bold">{profile.therapyProgress}%</div>
+              <p className="text-emerald-600 mb-3 text-sm">{profile.completedSessions} of {profile.totalSessions} Sessions</p>
               <Progress value={profile.therapyProgress} className="h-3 w-full bg-emerald-100 [&>div]:bg-emerald-600" />
             </div>
             <div className="text-center text-sm text-emerald-600">
@@ -693,7 +719,7 @@ export default function Dashboard({ onLogout }) {
               Ayurvedic Constitution
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {Object.entries(profile.doshaBalance).map(([dosha, percentage]) => (
               <div key={dosha} className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -731,7 +757,7 @@ export default function Dashboard({ onLogout }) {
                 <p className="text-emerald-600 text-sm">Today at 10:30 AM</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
               <div className="p-2 bg-blue-200 rounded-full">
                 <BookOpenIcon className="h-4 w-4 text-blue-700" />
@@ -741,7 +767,7 @@ export default function Dashboard({ onLogout }) {
                 <p className="text-blue-600 text-sm">Yesterday at 6:00 AM</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
               <div className="p-2 bg-orange-200 rounded-full">
                 <Heart className="h-4 w-4 text-orange-700" />
@@ -764,7 +790,7 @@ export default function Dashboard({ onLogout }) {
         <p className="text-emerald-600">Schedule your next Ayurvedic therapy session</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
             <CardTitle className="text-emerald-800">Session Details</CardTitle>
@@ -808,14 +834,12 @@ export default function Dashboard({ onLogout }) {
               <div className="space-y-2">
                 <Label className="text-emerald-700">Available Time Slots</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {doctors.find(d => d.id === selectedDoctor)?.availability.map((time) => (
+                  {doctors.find((d) => d.id === selectedDoctor)?.availability.map((time) => (
                     <Button
                       key={time}
                       variant={selectedTime === time ? "default" : "outline"}
                       className={`${
-                        selectedTime === time 
-                          ? "bg-emerald-600 hover:bg-emerald-700" 
-                          : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        selectedTime === time ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                       }`}
                       onClick={() => setSelectedTime(time)}
                     >
@@ -826,17 +850,14 @@ export default function Dashboard({ onLogout }) {
               </div>
             )}
 
-            <Button 
-              onClick={handleBookAppointment}
-              className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white"
-            >
+            <Button onClick={handleBookAppointment} className="w-full bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white">
               <CalendarIcon className="h-4 w-4 mr-2" />
               Book Appointment
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl w-fit max-w-sm">
+        <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl w-full max-w-full">
           <CardHeader>
             <CardTitle className="text-emerald-800 font-bold">Select Date</CardTitle>
           </CardHeader>
@@ -860,7 +881,7 @@ export default function Dashboard({ onLogout }) {
         <p className="text-emerald-600">View your past and upcoming therapy sessions</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-emerald-800">
@@ -871,14 +892,10 @@ export default function Dashboard({ onLogout }) {
           <CardContent>
             <div className="space-y-4">
               {upcomingAppointments.map((appointment) => (
-                <div key={appointment.id} className="p-4 border border-emerald-200 rounded-lg">
+                <div key={appointment.id} className="p-3 border border-emerald-200 rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-emerald-800">{appointment.therapy}</h4>
-                    <Badge className={`${
-                      appointment.status === 'confirmed' 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
+                    <Badge className={`${appointment.status === "confirmed" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
                       {appointment.status}
                     </Badge>
                   </div>
@@ -906,12 +923,10 @@ export default function Dashboard({ onLogout }) {
           <CardContent>
             <div className="space-y-4">
               {pastAppointments.map((appointment) => (
-                <div key={appointment.id} className="p-4 border border-emerald-200 rounded-lg">
+                <div key={appointment.id} className="p-3 border border-emerald-200 rounded-lg">
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="text-emerald-800">{appointment.therapy}</h4>
-                    <Badge className="bg-emerald-100 text-emerald-700">
-                      Completed
-                    </Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700">Completed</Badge>
                   </div>
                   <div className="flex items-center gap-2 text-emerald-600 text-sm mb-1">
                     <Stethoscope className="h-4 w-4" />
@@ -942,17 +957,17 @@ export default function Dashboard({ onLogout }) {
       </div>
 
       {/* Compact Doctor Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {doctors.map((doctor) => (
           <Card key={doctor.id} className="border-0 bg-white/95 backdrop-blur-sm shadow-xl hover:shadow-2xl transition-shadow">
-            <CardContent className="p-6">
-              <div className="space-y-4">
+            <CardContent className="p-4 sm:p-6">
+              <div className="space-y-3">
                 {/* Doctor Header */}
                 <div className="flex items-center gap-3">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src="" alt={doctor.name} />
+                  <Avatar className="w-14 h-14">
+                    <AvatarImage src={doctor.avatar} alt={doctor.name} />
                     <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-green-600 text-white">
-                      {doctor.name.split(' ').map(n => n[0]).join('')}
+                      {doctor.name.split(" ").map((n) => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
@@ -966,9 +981,7 @@ export default function Dashboard({ onLogout }) {
                 {/* Rating */}
                 <div className="flex items-center gap-2">
                   {renderStars(doctor.rating)}
-                  <span className="text-emerald-600 text-sm">
-                    {doctor.rating} ({doctor.totalReviews})
-                  </span>
+                  <span className="text-emerald-600 text-sm">{doctor.rating} ({doctor.totalReviews})</span>
                 </div>
 
                 {/* Key Stats */}
@@ -1002,23 +1015,17 @@ export default function Dashboard({ onLogout }) {
                         Book Consultation
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-md sm:max-w-lg md:max-w-2xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Book Consultation with {doctor.name}</DialogTitle>
-                        <DialogDescription>
-                          Schedule a consultation session with {doctor.name}
-                        </DialogDescription>
+                        <DialogDescription>Schedule a consultation session with {doctor.name}</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
                           <Label>Available Time Slots</Label>
                           <div className="grid grid-cols-2 gap-2">
                             {doctor.availability.map((time) => (
-                              <Button
-                                key={time}
-                                variant="outline"
-                                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                              >
+                              <Button key={time} variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
                                 {time}
                               </Button>
                             ))}
@@ -1040,13 +1047,13 @@ export default function Dashboard({ onLogout }) {
                         View Details
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className=" bg-white max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogContent className="bg-white max-w-4xl max-h-[80vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="flex items-center gap-3">
                           <Avatar className="w-12 h-12">
-                            <AvatarImage src="" alt={doctor.name} />
+                            <AvatarImage src={doctor.avatar} alt={doctor.name} />
                             <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-green-600 text-white">
-                              {doctor.name.split(' ').map(n => n[0]).join('')}
+                              {doctor.name.split(" ").map((n) => n[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
@@ -1055,9 +1062,9 @@ export default function Dashboard({ onLogout }) {
                           </div>
                         </DialogTitle>
                       </DialogHeader>
-                      
-                      <div className="space-y-6 py-4">
-                        {/* About */} 
+
+                      <div className="space-y-6 py-4 px-2 sm:px-6">
+                        {/* About */}
                         <div>
                           <h4 className="text-emerald-800 mb-2">About</h4>
                           <p className="text-emerald-700 text-sm leading-relaxed">{doctor.about}</p>
@@ -1083,13 +1090,11 @@ export default function Dashboard({ onLogout }) {
                               <span>{doctor.location}</span>
                             </div>
                           </div>
-                          
+
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               {renderStars(doctor.rating)}
-                              <span className="text-emerald-600 text-sm">
-                                {doctor.rating} ({doctor.totalReviews} reviews)
-                              </span>
+                              <span className="text-emerald-600 text-sm">{doctor.rating} ({doctor.totalReviews} reviews)</span>
                             </div>
                             <div className="pt-2">
                               <p className="text-emerald-700 text-lg">{doctor.consultationFee}</p>
@@ -1175,30 +1180,30 @@ export default function Dashboard({ onLogout }) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
             <div className="space-y-2">
-              <div className="text-3xl text-emerald-700">
+              <div className="text-2xl sm:text-3xl text-emerald-700 font-bold">
                 {doctors.reduce((sum, doctor) => sum + doctor.patientsHealed, 0).toLocaleString()}
               </div>
-              <p className="text-emerald-600">Total Patients Healed</p>
+              <p className="text-emerald-600 text-sm">Total Patients Healed</p>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl text-emerald-700">
+              <div className="text-2xl sm:text-3xl text-emerald-700 font-bold">
                 {(doctors.reduce((sum, doctor) => sum + doctor.rating, 0) / doctors.length).toFixed(1)}
               </div>
-              <p className="text-emerald-600">Average Rating</p>
+              <p className="text-emerald-600 text-sm">Average Rating</p>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl text-emerald-700">
+              <div className="text-2xl sm:text-3xl text-emerald-700 font-bold">
                 {doctors.reduce((sum, doctor) => sum + parseInt(doctor.experience), 0)}+
               </div>
-              <p className="text-emerald-600">Years Combined Experience</p>
+              <p className="text-emerald-600 text-sm">Years Combined Experience</p>
             </div>
             <div className="space-y-2">
-              <div className="text-3xl text-emerald-700">
+              <div className="text-2xl sm:text-3xl text-emerald-700 font-bold">
                 {doctors.reduce((sum, doctor) => sum + doctor.totalReviews, 0)}
               </div>
-              <p className="text-emerald-600">Patient Reviews</p>
+              <p className="text-emerald-600 text-sm">Patient Reviews</p>
             </div>
           </div>
         </CardContent>
@@ -1213,7 +1218,7 @@ export default function Dashboard({ onLogout }) {
         <p className="text-emerald-600">Share your experience and help us improve our services</p>
       </div>
 
-      <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl max-w-2xl">
+      <Card className="border-0 bg-white/95 backdrop-blur-sm shadow-xl max-w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-emerald-800">
             <MessageSquare className="h-5 w-5" />
@@ -1225,9 +1230,7 @@ export default function Dashboard({ onLogout }) {
             <Label className="text-emerald-700">Overall Rating</Label>
             <div className="flex items-center gap-2">
               {renderStars(feedbackRating, true, setFeedbackRating)}
-              <span className="text-emerald-600 text-sm ml-2">
-                {feedbackRating > 0 && `${feedbackRating} star${feedbackRating > 1 ? 's' : ''}`}
-              </span>
+              <span className="text-emerald-600 text-sm ml-2">{feedbackRating > 0 && `${feedbackRating} star${feedbackRating > 1 ? "s" : ""}`}</span>
             </div>
           </div>
 
@@ -1241,10 +1244,7 @@ export default function Dashboard({ onLogout }) {
             />
           </div>
 
-          <Button 
-            onClick={handleSubmitFeedback}
-            className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700"
-          >
+          <Button onClick={handleSubmitFeedback} className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700">
             <MessageSquare className="h-4 w-4 mr-2" />
             Submit Feedback
           </Button>
@@ -1261,7 +1261,7 @@ export default function Dashboard({ onLogout }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="p-4 border border-emerald-200 rounded-lg">
+            <div className="p-3 border border-emerald-200 rounded-lg">
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h4 className="text-emerald-800">Abhyanga Massage Session</h4>
@@ -1274,7 +1274,7 @@ export default function Dashboard({ onLogout }) {
               </p>
             </div>
 
-            <div className="p-4 border border-emerald-200 rounded-lg">
+            <div className="p-3 border border-emerald-200 rounded-lg">
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h4 className="text-emerald-800">Panchakarma Consultation</h4>
@@ -1294,12 +1294,18 @@ export default function Dashboard({ onLogout }) {
 
   const renderContent = () => {
     switch (activeSection) {
-      case "dashboard": return renderDashboard();
-      case "booking": return renderBooking();
-      case "schedule": return renderSchedule();
-      case "doctors": return renderDoctors();
-      case "feedback": return renderFeedback();
-      default: return renderDashboard();
+      case "dashboard":
+        return renderDashboard();
+      case "booking":
+        return renderBooking();
+      case "schedule":
+        return renderSchedule();
+      case "doctors":
+        return renderDoctors();
+      case "feedback":
+        return renderFeedback();
+      default:
+        return renderDashboard();
     }
   };
 
@@ -1315,47 +1321,48 @@ export default function Dashboard({ onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex flex-col md:flex-row">
       {/* Background Image */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1730977806307-3351cb73a9b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxheXVydmVkYSUyMG1lZGl0YXRpb24lMjB0aGVyYXB5fGVufDF8fHx8MTc1ODgyMTEwOHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+          src="https://images.unsplash.com/photo-1730977806307-3351cb73a9b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=1080"
           alt="Ayurveda background"
           className="w-full h-full object-cover"
         />
       </div>
 
       {/* Sidebar */}
-      <div className="relative z-10 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-200">
-        <div className="p-6">
+      <div
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white/95 backdrop-blur-sm shadow-xl border-r border-emerald-200 transform transition-transform duration-300
+          ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:flex-shrink-0`}
+      >
+        <div className="p-4 md:p-6 flex flex-col h-full">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6">
             <div className="p-0 bg-gradient-to-br ">
-              <img
-              src="/Ayurlogo.png"
-              alt="Leaf Icon"
-              className="h-18 w-18 text-green-600"
-            />
+              <img src="/Ayurlogo.png" alt="Leaf Icon" className="h-15 w-15" />
             </div>
             <div>
-              <h1 className="text-lg text-emerald-800 -pl-2">AyurSutra</h1>
+              <h1 className="text-lg text-emerald-800">AyurSutra</h1>
               <p className="text-emerald-600 text-sm">Wellness Portal</p>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-2">
+          <nav className="space-y-2 flex-1 overflow-y-auto">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeSection === item.id;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                    isActive 
-                      ? "bg-emerald-600 text-white shadow-lg" 
-                      : "text-emerald-700 hover:bg-emerald-50"
+                  onClick={() => {
+                    setActiveSection(item.id);
+                    setIsSidebarOpen(false); // close on mobile
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                    isActive ? "bg-emerald-600 text-white shadow-lg" : "text-emerald-700 hover:bg-emerald-50"
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -1366,13 +1373,13 @@ export default function Dashboard({ onLogout }) {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200 mb-4">
+          <div className="mt-4">
+            <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 mb-3">
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={profile.avatar} alt={profile.fullName} />
                   <AvatarFallback className="bg-emerald-600 text-white text-sm">
-                    {profile.fullName.split(' ').map(n => n[0]).join('')}
+                    {profile.fullName.split(" ").map((n) => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
@@ -1381,11 +1388,7 @@ export default function Dashboard({ onLogout }) {
                 </div>
               </div>
             </div>
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="w-full border-red-200 text-red-700 hover:bg-red-50"
-            >
+            <Button onClick={handleLogout} variant="outline" className="w-full border-red-200 text-red-700 hover:bg-red-50">
               <LogOutIcon className="h-4 w-4 mr-2" />
               Logout
             </Button>
@@ -1393,15 +1396,26 @@ export default function Dashboard({ onLogout }) {
         </div>
       </div>
 
+      {/* Overlay for mobile when sidebar open */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-20 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
       {/* Main Content */}
-      <div className="relative z-10 flex-1 p-6">
+      <div className="relative z-10 flex-1 p-4 md:p-6 overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl text-emerald-800">Patient Dashboard</h1>
-            <p className="text-emerald-600">Patient Portal</p>
-          </div>
           <div className="flex items-center gap-3">
+            {/* Hamburger for mobile */}
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden p-2 rounded-lg hover:bg-emerald-100">
+              <Menu className="h-6 w-6 text-emerald-700" />
+            </button>
+            <div>
+              <h1 className="text-xl md:text-2xl text-emerald-800">Patient Dashboard</h1>
+              <p className="text-emerald-600 text-sm md:text-base">Patient Portal</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-3">
             <Button onClick={handleLogout} variant="outline" className="border-emerald-200 text-emerald-700">
               <LogOutIcon className="h-4 w-4 mr-2" />
               Logout
@@ -1411,9 +1425,7 @@ export default function Dashboard({ onLogout }) {
 
         {success && (
           <Alert className="mb-6 border-emerald-200 bg-emerald-50">
-            <AlertDescription className="text-emerald-700">
-              {success}
-            </AlertDescription>
+            <AlertDescription className="text-emerald-700">{success}</AlertDescription>
           </Alert>
         )}
 

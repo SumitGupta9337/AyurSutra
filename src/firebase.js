@@ -1,7 +1,9 @@
+// firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // ⬅️ add this
+import { getFirestore } from "firebase/firestore";
 
+// Firebase config (pulled from Vite env variables)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -11,11 +13,12 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Initialize Firebase (make sure only one app instance)
 const app = initializeApp(firebaseConfig);
 
-// Auth
+// Auth setup
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Firestore
-export const db = getFirestore(app); // ⬅️ export this so dashboard.jsx can fetch user details
+// Firestore setup
+export const db = getFirestore(app);

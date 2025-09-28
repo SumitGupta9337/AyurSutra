@@ -176,14 +176,17 @@ export default function Signup({ onNavigateToLogin }) {
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center space-y-2">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-green-600 rounded-full">
-                <Leaf className="h-8 w-8 text-white" />
-              </div>
+               <img
+              src="/Ayurlogo.png"
+              alt="Leaf Icon"
+              className="h-20 w-20 text-green-600"
+            />
+          
             </div>
-            <CardTitle className="text-2xl text-emerald-800">
-              Join Panchkarma Ayurveda
+            <CardTitle className="-mt-7 text-2xl text-emerald-800">
+              Join Ayursutra
             </CardTitle>
-            <CardDescription className="text-emerald-600">
+            <CardDescription className="text-emerald-600 -mt-3">
               Begin your journey to holistic wellness
             </CardDescription>
           </CardHeader>

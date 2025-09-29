@@ -8,6 +8,8 @@ function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [role, setRole] = useState(null);
+
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
@@ -17,6 +19,14 @@ function Header() {
       setUser(currentUser);
     });
     return () => unsubscribe();
+  }, []);
+
+  // Load role from localStorage
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) {
+      setRole(storedRole);
+    }
   }, []);
 
   // Close dropdown when clicking outside
@@ -43,9 +53,21 @@ function Header() {
   const handleLogout = async () => {
     try {
       await auth.signOut();
+      localStorage.removeItem("role"); // ✅ clear role on logout
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error.message);
+    }
+  };
+
+  // ✅ Function to navigate by role
+  const goToDashboard = () => {
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    } else if (role === "practitioner") {
+      navigate("/practitioner-dashboard");
+    } else {
+      navigate("/patient-dashboard");
     }
   };
 
@@ -89,9 +111,8 @@ function Header() {
             {/* Profile Circle / Login */}
             {user ? (
               <div>
-                {/* Single Profile Button */}
                 <div
-                  onClick={() => navigate("/dashboard")}
+                  onClick={goToDashboard} // ✅ navigate based on role
                   className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center cursor-pointer hover:bg-green-700"
                   title={user.displayName || "Profile"}
                 >
@@ -106,7 +127,6 @@ function Header() {
                 Login
               </button>
             )}
-
           </nav>
 
           {/* Mobile Menu Button */}
@@ -122,18 +142,53 @@ function Header() {
         {isMenuOpen && (
           <nav className="md:hidden mt-4 pb-4 border-t">
             <div className="flex flex-col space-y-4 pt-4">
-              <Link smooth to="/#home" className="text-gray-700 hover:text-green-600" onClick={() => setIsMenuOpen(false)}>Home</Link>
-              <Link smooth to="/#about" className="text-gray-700 hover:text-green-600" onClick={() => setIsMenuOpen(false)}>About</Link>
-              <Link smooth to="/#services" className="text-gray-700 hover:text-green-600" onClick={() => setIsMenuOpen(false)}>Services</Link>
-              <Link smooth to="/#practitioners" className="text-gray-700 hover:text-green-600" onClick={() => setIsMenuOpen(false)}>Practitioners</Link>
-              <Link smooth to="/#contact" className="text-gray-700 hover:text-green-600" onClick={() => setIsMenuOpen(false)}>Contact</Link>
+              <Link
+                smooth
+                to="/#home"
+                className="text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Home
+              </Link>
+              <Link
+                smooth
+                to="/#about"
+                className="text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link
+                smooth
+                to="/#services"
+                className="text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Services
+              </Link>
+              <Link
+                smooth
+                to="/#practitioners"
+                className="text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Practitioners
+              </Link>
+              <Link
+                smooth
+                to="/#contact"
+                className="text-gray-700 hover:text-green-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Contact
+              </Link>
 
               {user ? (
                 <>
                   <button
                     className="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded px-4 py-2 w-full text-left"
                     onClick={() => {
-                      navigate("/profile");
+                      goToDashboard(); // ✅ role-based routing
                       setIsMenuOpen(false);
                     }}
                   >

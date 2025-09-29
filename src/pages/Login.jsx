@@ -9,13 +9,14 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
-import { Loader2, Mail, Lock, User, Leaf, ArrowRight } from "lucide-react";
+import { Loader2, Mail, Lock, User, Leaf, ArrowRight, IdCard } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [doctorId, setDoctorId] = useState(""); // NEW state
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -39,10 +40,29 @@ export default function Login() {
       return;
     }
 
+    // Validation for doctor ID if practitioner
+    if (role === "practitioner" && !doctorId.trim()) {
+      setError("Doctor ID is required for practitioners.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, password);
       localStorage.setItem("role", role);
-      navigate("/dashboard");
+
+      if (role === "practitioner") {
+        localStorage.setItem("doctorId", doctorId); // Save doctor ID
+      }
+
+      if (role === "patient") {
+        navigate("/patient-dashboard");
+      } else if (role === "practitioner") {
+        navigate("/practitioner-dashboard");
+      } else if (role === "admin") {
+        navigate("/admin-dashboard");
+      }
+
     } catch (err) {
       setError(err.message || "Login failed.");
     } finally {
@@ -56,13 +76,31 @@ export default function Login() {
       return;
     }
 
+    // Validation for doctor ID if practitioner
+    if (role === "practitioner" && !doctorId.trim()) {
+      setError("Doctor ID is required for practitioners.");
+      return;
+    }
+
     setError("");
     setIsGoogleLoading(true);
 
     try {
       await signInWithPopup(auth, googleProvider);
       localStorage.setItem("role", role);
-      navigate("/dashboard");
+
+      if (role === "practitioner") {
+        localStorage.setItem("doctorId", doctorId);
+      }
+
+      if (role === "patient") {
+  navigate("/dashboard");
+} else if (role === "practitioner") {
+  navigate("/practitioner-dashboard");
+} else if (role === "admin") {
+  navigate("/admin-dashboard");
+}
+
     } catch (err) {
       setError(err.message || "Google login failed.");
     } finally {
@@ -74,7 +112,7 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 opacity-5">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1724833377978-ed06f4d478cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxheXVydmVkYSUyMG1lZGl0YXRpb24lMjB3ZWxsbmVzcyUyMG5hdHVyZXxlbnwxfHx8fDE3NTg3MzY1MzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
+          src="https://images.unsplash.com/photo-1724833377978-ed06f4d478cd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg"
           alt="Ayurveda background"
           className="w-full h-full object-cover"
         />
@@ -83,14 +121,10 @@ export default function Login() {
       <div className="relative z-10 w-full max-w-md">
         <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center space-y-0">
-            <div className="flex justify-center mt-">
-              <img
-              src="/Ayurlogo.png"
-              alt="Leaf Icon"
-              className="h-20 w-20 text-green-600"
-            />
+            <div className="flex justify-center">
+              <img src="/Ayurlogo.png" alt="Leaf Icon" className="h-20 w-20 text-green-600" />
             </div>
-            <CardTitle className="text-2xl text-emerald-800 -mt-5 ">AyurSutra</CardTitle>
+            <CardTitle className="text-2xl text-emerald-800 -mt-5">AyurSutra</CardTitle>
             <CardDescription className="text-emerald-600">Welcome back to your wellness journey</CardDescription>
           </CardHeader>
 
@@ -112,12 +146,30 @@ export default function Login() {
                     <SelectValue placeholder="Choose your role" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-emerald-200 shadow-md">
-                    <SelectItem value="patient">Patient</SelectItem>
-                    <SelectItem value="practitioner">Practitioner</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="patient" className=" hover:bg-emerald-50">Patient</SelectItem>
+                    <SelectItem value="practitioner" className=" hover:bg-emerald-50">Practitioner</SelectItem>
+                    <SelectItem value="admin" className=" hover:bg-emerald-50">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Doctor ID (only for Practitioner) */}
+              {role === "practitioner" && (
+                <div className="space-y-2">
+                  <Label htmlFor="doctorId" className="flex items-center gap-2 text-emerald-700">
+                    <IdCard className="h-4 w-4" /> Doctor ID
+                  </Label>
+                  <Input
+                    id="doctorId"
+                    type="text"
+                    placeholder="Enter your Doctor ID(1234)"
+                    value={doctorId}
+                    onChange={(e) => setDoctorId(e.target.value)}
+                    className="border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500/20"
+                    required={role === "practitioner"}
+                  />
+                </div>
+              )}
 
               {/* Email */}
               <div className="space-y-2">

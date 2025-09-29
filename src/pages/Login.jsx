@@ -56,7 +56,7 @@ export default function Login() {
       }
 
       if (role === "patient") {
-        navigate("/patient-dashboard");
+        navigate("/dashboard");
       } else if (role === "practitioner") {
         navigate("/practitioner-dashboard");
       } else if (role === "admin") {
